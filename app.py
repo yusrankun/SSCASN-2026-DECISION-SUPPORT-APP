@@ -16,15 +16,22 @@ def load_data(file_path):
 
     df = pd.read_csv(file_path)
 
+    # numeric conversion
     df["gaji_min"] = pd.to_numeric(df.get("gaji_min"), errors="coerce")
     df["gaji_max"] = pd.to_numeric(df.get("gaji_max"), errors="coerce")
     df["jumlah_formasi"] = pd.to_numeric(df.get("jumlah_formasi"), errors="coerce")
     df["jumlah_ms"] = pd.to_numeric(df.get("jumlah_ms"), errors="coerce")
 
+    # feature engineering
     df["avg_gaji"] = (df["gaji_min"] + df["gaji_max"]) / 2
+
+    # 🔥 CLEAN OUTLIER GAJI
+    df = df[df["avg_gaji"] <= 20000000]
+
     df["rasio_persaingan"] = df["jumlah_ms"] / df["jumlah_formasi"]
     df["rasio_persaingan"] = df["rasio_persaingan"].replace([np.inf, -np.inf], np.nan)
 
+    # extract provinsi
     def extract_provinsi(x):
         x = str(x).upper()
         if "JAWA BARAT" in x:
@@ -167,6 +174,9 @@ filtered["score"] = (
     ((1 / (filtered["rasio_persaingan"] + 1)) * weight_rasio)
 )
 
+# 🔥 UBAH KE PERSENTASE
+filtered["score_pct"] = filtered["score"] * 100
+
 result = filtered.sort_values("score", ascending=False)
 
 # =========================
@@ -178,20 +188,22 @@ display_df = result[[
     "provinsi",
     "avg_gaji",
     "rasio_persaingan",
-    "score"
+    "score_pct"
 ]].rename(columns={
     "ins_nm": "Instansi",
     "jabatan_nm": "Jabatan",
     "provinsi": "Lokasi",
     "avg_gaji": "Rata-rata Gaji",
     "rasio_persaingan": "Tingkat Persaingan",
-    "score": "Skor Rekomendasi"
+    "score_pct": "Skor Rekomendasi (%)"
 })
 
+# format gaji
 display_df["Rata-rata Gaji"] = display_df["Rata-rata Gaji"].apply(
     lambda x: f"Rp {x:,.0f}"
 )
 
+# label persaingan
 def label_persaingan(x):
     if x < 10:
         return "Sepi 🟢"
@@ -201,6 +213,11 @@ def label_persaingan(x):
         return "Ketat 🔴"
 
 display_df["Tingkat Persaingan"] = display_df["Tingkat Persaingan"].apply(label_persaingan)
+
+# format persen
+display_df["Skor Rekomendasi (%)"] = display_df["Skor Rekomendasi (%)"].apply(
+    lambda x: f"{x:.1f}%"
+)
 
 # =========================
 # OUTPUT
