@@ -174,56 +174,62 @@ st.markdown("### 🏆 Best Pick Saat Ini")
 
 st.markdown(f"""
 <div style="
-    background-color:#111827;
-    padding:20px;
+    background-color:#0f172a;
+    padding:24px;
     border-radius:12px;
     border:1px solid #1f2937;
 ">
 
-<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;">
+<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;">
 
 <div>
-<p style="color:#9ca3af; font-size:12px;">Instansi</p>
-<p style="font-size:16px;">{top1['ins_nm']}</p>
+<p style="color:#9ca3af; font-size:13px;">Instansi</p>
+<p style="font-size:18px; font-weight:500;">
+{top1['ins_nm']}
+</p>
 </div>
 
 <div>
-<p style="color:#9ca3af; font-size:12px;">Jabatan</p>
-<p style="font-size:16px;">{top1['jabatan_nm']}</p>
+<p style="color:#9ca3af; font-size:13px;">Jabatan</p>
+<p style="font-size:18px; font-weight:500;">
+{top1['jabatan_nm']}
+</p>
 </div>
 
 <div>
-<p style="color:#9ca3af; font-size:12px;">Lokasi</p>
-<p style="font-size:16px;">{top1['provinsi']}</p>
+<p style="color:#9ca3af; font-size:13px;">Lokasi</p>
+<p style="font-size:18px; font-weight:500;">
+{top1['provinsi']}
+</p>
 </div>
 
 <div>
-<p style="color:#9ca3af; font-size:12px;">Gaji</p>
-<p style="font-size:16px;">
+<p style="color:#9ca3af; font-size:13px;">Gaji</p>
+<p style="font-size:17px;">
 Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt
 </p>
 </div>
 
 <div>
-<p style="color:#9ca3af; font-size:12px;">Formasi vs Pelamar</p>
-<p style="font-size:16px;">
+<p style="color:#9ca3af; font-size:13px;">Formasi vs Pelamar</p>
+<p style="font-size:17px;">
 {int(top1['jumlah_formasi'])} / {int(top1['jumlah_ms'])}
 </p>
 </div>
 
 <div>
-<p style="color:#9ca3af; font-size:12px;">Estimasi</p>
-<p style="font-size:16px;">
+<p style="color:#9ca3af; font-size:13px;">Estimasi</p>
+<p style="font-size:17px;">
 {top1['chance_pct']:.2f}%
 </p>
 </div>
 
 </div>
 
-<hr style="margin:16px 0; border-color:#1f2937;">
+<hr style="margin:18px 0; border-color:#1f2937;">
 
-<p style="color:#9ca3af; font-size:12px;">Skor Rekomendasi</p>
-<p style="font-size:18px; font-weight:bold;">
+<p style="color:#9ca3af; font-size:13px;">Skor Rekomendasi</p>
+<p style="font-size:22px; font-weight:600;">
 {top1['score_pct']:.1f}%
 </p>
 
