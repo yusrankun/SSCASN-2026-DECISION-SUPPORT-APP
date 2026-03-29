@@ -160,11 +160,15 @@ filtered["score"] = (
     ((1 / (filtered["rasio_persaingan"] + 1)) * weight_rasio)
 )
 
+# ✅ FIX CHANCE
 filtered["chance"] = np.where(
     filtered["jumlah_ms"] == 0,
     1,
     filtered["jumlah_formasi"] / (filtered["jumlah_ms"] + 1)
 )
+
+# ✅ BATASIN MAX 100%
+filtered["chance"] = filtered["chance"].clip(0, 1)
 
 filtered["chance_pct"] = filtered["chance"] * 100
 
