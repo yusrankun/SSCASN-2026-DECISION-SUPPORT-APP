@@ -168,9 +168,8 @@ if instansi:
     ]
 
 if filtered.empty:
-    st.warning("⚠️ Tidak ada data sesuai filter. Menampilkan rekomendasi umum.")
-    filtered = df.copy()
-    filtered = filtered[filtered["rasio_persaingan"] < 100]
+    st.warning("⚠️ Tidak ada data sesuai filter. Coba ubah filter.")
+    st.stop()
 
 # =========================
 # SCORING + CHANCE
