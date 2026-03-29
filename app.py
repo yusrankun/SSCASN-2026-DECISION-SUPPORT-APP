@@ -166,6 +166,39 @@ filtered["score_pct"] = filtered["final_score"] * 100
 result = filtered.sort_values("final_score", ascending=False)
 
 # =========================
+# HELPER
+# =========================
+def format_gaji(row):
+    return f"Rp {row['gaji_min']/1e6:.1f}–{row['gaji_max']/1e6:.1f} jt"
+
+def label_persaingan(x):
+    if x < 10:
+        return "Sepi 🟢"
+    elif x < 30:
+        return "Sedang 🟡"
+    else:
+        return "Ketat 🔴"
+
+def label_score(x):
+    if x > 70:
+        return f"{x:.1f}% 🟢"
+    elif x > 50:
+        return f"{x:.1f}% 🟡"
+    else:
+        return f"{x:.1f}% 🔴"
+
+def label_chance(x):
+    if x > 10:
+        return f"{x:.2f}% 🟢"
+    elif x > 3:
+        return f"{x:.2f}% 🟡"
+    else:
+        return f"{x:.2f}% 🔴"
+
+def to_title_case(text):
+    return str(text).title()
+
+# =========================
 # 🏆 BEST PICK 
 # =========================
 top1 = result.iloc[0]
@@ -238,39 +271,6 @@ Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt
 
 </div>
 """, unsafe_allow_html=True)
-
-# =========================
-# HELPER
-# =========================
-def format_gaji(row):
-    return f"Rp {row['gaji_min']/1e6:.1f}–{row['gaji_max']/1e6:.1f} jt"
-
-def label_persaingan(x):
-    if x < 10:
-        return "Sepi 🟢"
-    elif x < 30:
-        return "Sedang 🟡"
-    else:
-        return "Ketat 🔴"
-
-def label_score(x):
-    if x > 70:
-        return f"{x:.1f}% 🟢"
-    elif x > 50:
-        return f"{x:.1f}% 🟡"
-    else:
-        return f"{x:.1f}% 🔴"
-
-def label_chance(x):
-    if x > 10:
-        return f"{x:.2f}% 🟢"
-    elif x > 3:
-        return f"{x:.2f}% 🟡"
-    else:
-        return f"{x:.2f}% 🔴"
-
-def to_title_case(text):
-    return str(text).title()
 
 # =========================
 # INSIGHT TABLE
