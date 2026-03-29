@@ -23,7 +23,6 @@ def load_data(file_path):
 
     df["avg_gaji"] = (df["gaji_min"] + df["gaji_max"]) / 2
 
-    # filter outlier
     df = df[df["avg_gaji"] <= 20000000]
 
     df["rasio_persaingan"] = df["jumlah_ms"] / df["jumlah_formasi"]
@@ -80,7 +79,7 @@ st.title("🎯 Rekomendasi Formasi CPNS")
 st.caption(f"Jurusan: {jurusan} | Optimasi peluang lolos + gaji")
 
 # =========================
-# SIDEBAR FILTER
+# SIDEBAR
 # =========================
 st.sidebar.header("⚙️ Filter & Strategi")
 
@@ -111,7 +110,7 @@ weight_gaji = st.sidebar.slider("Prioritas Gaji", 0.0, 1.0, 0.5)
 weight_rasio = 1 - weight_gaji
 
 # =========================
-# FILTERING
+# FILTER
 # =========================
 filtered = df.copy()
 
@@ -140,22 +139,49 @@ if instansi:
         filtered["ins_nm"].str.contains(instansi, case=False, na=False)
     ]
 
-# fallback
 if filtered.empty:
     st.warning("⚠️ Tidak ada data sesuai filter. Menampilkan rekomendasi umum.")
     filtered = df.copy()
     filtered = filtered[filtered["rasio_persaingan"] < 100]
 
 # =========================
-# SCORING
+# SCORING + CHANCE
 # =========================
 filtered["score"] = (
     (filtered["avg_gaji"] / filtered["avg_gaji"].max()) * weight_gaji +
     ((1 / (filtered["rasio_persaingan"] + 1)) * weight_rasio)
 )
 
-filtered["score_pct"] = filtered["score"] * 100
-result = filtered.sort_values("score", ascending=False)
+filtered["chance"] = filtered["jumlah_formasi"] / filtered["jumlah_ms"]
+filtered["chance"] = filtered["chance"].replace([np.inf, -np.inf], np.nan).fillna(0)
+
+filtered["chance_pct"] = filtered["chance"] * 100
+
+filtered["final_score"] = (
+    filtered["score"] * 0.6 +
+    filtered["chance"] * 0.4
+)
+
+filtered["score_pct"] = filtered["final_score"] * 100
+result = filtered.sort_values("final_score", ascending=False)
+
+# =========================
+# 🥇 BEST PICK
+# =========================
+top1 = result.iloc[0]
+
+st.success(f"""
+🥇 BEST PICK SAAT INI
+
+🏢 {top1['ins_nm']}  
+💼 {top1['jabatan_nm']}  
+📍 {top1['provinsi']}  
+💰 Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt  
+👥 {int(top1['jumlah_ms'])} pelamar | {int(top1['jumlah_formasi'])} formasi  
+
+🎯 Estimasi: {top1['chance_pct']:.2f}%  
+🔥 Skor: {top1['score_pct']:.1f}%
+""")
 
 # =========================
 # HELPER
@@ -171,8 +197,24 @@ def label_persaingan(x):
     else:
         return "Ketat 🔴"
 
+def label_score(x):
+    if x > 70:
+        return f"{x:.1f}% 🟢"
+    elif x > 50:
+        return f"{x:.1f}% 🟡"
+    else:
+        return f"{x:.1f}% 🔴"
+
+def label_chance(x):
+    if x > 10:
+        return f"{x:.2f}% 🟢"
+    elif x > 3:
+        return f"{x:.2f}% 🟡"
+    else:
+        return f"{x:.2f}% 🔴"
+
 # =========================
-# 📊 INSIGHT TABLE
+# INSIGHT TABLE
 # =========================
 st.subheader("📊 Insight Formasi")
 
@@ -198,59 +240,20 @@ insight_df = insight_df[[
 st.dataframe(insight_df, width="stretch")
 
 # =========================
-# 🏆 TOP 3 EASIEST
-# =========================
-st.subheader("🏆 Peluang Terbaik (Saingan Rendah)")
-
-easiest = filtered.sort_values("rasio_persaingan").head(3)
-easiest["Gaji"] = easiest.apply(format_gaji, axis=1)
-
-st.dataframe(easiest[[
-    "ins_nm", "jabatan_nm", "provinsi", "Gaji", "jumlah_formasi", "jumlah_ms", "rasio_persaingan"
-]].rename(columns={
-    "ins_nm": "Instansi",
-    "jabatan_nm": "Jabatan",
-    "provinsi": "Lokasi",
-    "jumlah_formasi": "Formasi",
-    "jumlah_ms": "Pendaftar",
-    "rasio_persaingan": "Rasio"
-}), width="stretch")
-
-# =========================
-# 💎 HIDDEN GEM
-# =========================
-st.subheader("💎 Hidden Gem (Gaji Lumayan + Sepi)")
-
-hidden = filtered[
-    (filtered["avg_gaji"] > filtered["avg_gaji"].median()) &
-    (filtered["rasio_persaingan"] < filtered["rasio_persaingan"].median())
-].head(5)
-
-hidden["Gaji"] = hidden.apply(format_gaji, axis=1)
-
-st.dataframe(hidden[[
-    "ins_nm", "jabatan_nm", "provinsi", "Gaji", "jumlah_formasi", "jumlah_ms"
-]].rename(columns={
-    "ins_nm": "Instansi",
-    "jabatan_nm": "Jabatan",
-    "provinsi": "Lokasi",
-    "jumlah_formasi": "Formasi",
-    "jumlah_ms": "Pendaftar"
-}), width="stretch")
-
-# =========================
-# 🏆 REKOMENDASI
+# REKOMENDASI
 # =========================
 st.subheader("🏆 Rekomendasi Terbaik")
 
 display_df = result.copy()
 display_df["Gaji"] = display_df.apply(format_gaji, axis=1)
 display_df["Persaingan"] = display_df["rasio_persaingan"].apply(label_persaingan)
-display_df["Skor (%)"] = display_df["score_pct"].apply(lambda x: f"{x:.1f}%")
+display_df["Estimasi (%)"] = display_df["chance_pct"].apply(label_chance)
+display_df["Skor (%)"] = display_df["score_pct"].apply(label_score)
 
 display_df = display_df[[
     "ins_nm", "jabatan_nm", "provinsi", "Gaji",
-    "jumlah_formasi", "jumlah_ms", "Persaingan", "Skor (%)"
+    "jumlah_formasi", "jumlah_ms",
+    "Persaingan", "Estimasi (%)", "Skor (%)"
 ]].rename(columns={
     "ins_nm": "Instansi",
     "jabatan_nm": "Jabatan",
