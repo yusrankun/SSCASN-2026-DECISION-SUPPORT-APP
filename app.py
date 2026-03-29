@@ -16,22 +16,19 @@ def load_data(file_path):
 
     df = pd.read_csv(file_path)
 
-    # numeric conversion
     df["gaji_min"] = pd.to_numeric(df.get("gaji_min"), errors="coerce")
     df["gaji_max"] = pd.to_numeric(df.get("gaji_max"), errors="coerce")
     df["jumlah_formasi"] = pd.to_numeric(df.get("jumlah_formasi"), errors="coerce")
     df["jumlah_ms"] = pd.to_numeric(df.get("jumlah_ms"), errors="coerce")
 
-    # feature engineering
     df["avg_gaji"] = (df["gaji_min"] + df["gaji_max"]) / 2
 
-    # filter outlier gaji
+    # filter outlier
     df = df[df["avg_gaji"] <= 20000000]
 
     df["rasio_persaingan"] = df["jumlah_ms"] / df["jumlah_formasi"]
     df["rasio_persaingan"] = df["rasio_persaingan"].replace([np.inf, -np.inf], np.nan)
 
-    # extract provinsi
     def extract_provinsi(x):
         x = str(x).upper()
         if "JAWA BARAT" in x:
@@ -65,18 +62,16 @@ jurusan = st.sidebar.selectbox(
     ]
 )
 
-if jurusan == "SLTA/SMA":
-    df = load_data("data/slta.csv")
-elif jurusan == "Sistem Informasi":
-    df = load_data("data/sistem_informasi.csv")
-elif jurusan == "Teknik Informatika":
-    df = load_data("data/teknik_informatika.csv")
-elif jurusan == "Teknik Elektro":
-    df = load_data("data/teknik_elektro.csv")
-elif jurusan == "Ilmu Komunikasi":
-    df = load_data("data/ilmu_komunikasi.csv")
-else:
-    df = load_data("data/akuntansi.csv")
+file_map = {
+    "SLTA/SMA": "data/slta.csv",
+    "Sistem Informasi": "data/sistem_informasi.csv",
+    "Teknik Informatika": "data/teknik_informatika.csv",
+    "Teknik Elektro": "data/teknik_elektro.csv",
+    "Ilmu Komunikasi": "data/ilmu_komunikasi.csv",
+    "Akuntansi": "data/akuntansi.csv"
+}
+
+df = load_data(file_map[jurusan])
 
 # =========================
 # HEADER
@@ -85,7 +80,7 @@ st.title("🎯 Rekomendasi Formasi CPNS")
 st.caption(f"Jurusan: {jurusan} | Optimasi peluang lolos + gaji")
 
 # =========================
-# SIDEBAR
+# SIDEBAR FILTER
 # =========================
 st.sidebar.header("⚙️ Filter & Strategi")
 
@@ -111,7 +106,6 @@ max_rasio = st.sidebar.slider("Maks Persaingan", 1, 200, 30)
 
 instansi = st.sidebar.text_input("Filter Instansi (opsional)")
 
-# preferensi
 st.sidebar.subheader("⚖️ Preferensi")
 weight_gaji = st.sidebar.slider("Prioritas Gaji", 0.0, 1.0, 0.5)
 weight_rasio = 1 - weight_gaji
@@ -146,7 +140,7 @@ if instansi:
         filtered["ins_nm"].str.contains(instansi, case=False, na=False)
     ]
 
-# fallback kalau kosong
+# fallback
 if filtered.empty:
     st.warning("⚠️ Tidak ada data sesuai filter. Menampilkan rekomendasi umum.")
     filtered = df.copy()
@@ -161,11 +155,10 @@ filtered["score"] = (
 )
 
 filtered["score_pct"] = filtered["score"] * 100
-
 result = filtered.sort_values("score", ascending=False)
 
 # =========================
-# DISPLAY
+# HELPER
 # =========================
 def format_gaji(row):
     return f"Rp {row['gaji_min']/1e6:.1f}–{row['gaji_max']/1e6:.1f} jt"
@@ -178,37 +171,95 @@ def label_persaingan(x):
     else:
         return "Ketat 🔴"
 
-display_df = result.copy()
+# =========================
+# 📊 INSIGHT TABLE
+# =========================
+st.subheader("📊 Insight Formasi")
 
+insight_df = pd.concat([
+    df.sort_values("avg_gaji", ascending=False).head(1).assign(Kategori="💰 Gaji Tertinggi"),
+    df.sort_values("avg_gaji").head(1).assign(Kategori="💸 Gaji Terendah"),
+    df.sort_values("jumlah_ms", ascending=False).head(1).assign(Kategori="🔥 Pendaftar Terbanyak"),
+    df.sort_values("jumlah_ms").head(1).assign(Kategori="🧊 Pendaftar Tersedikit")
+])
+
+insight_df["Gaji"] = insight_df.apply(format_gaji, axis=1)
+
+insight_df = insight_df[[
+    "Kategori", "ins_nm", "jabatan_nm", "provinsi", "Gaji", "jumlah_formasi", "jumlah_ms"
+]].rename(columns={
+    "ins_nm": "Instansi",
+    "jabatan_nm": "Jabatan",
+    "provinsi": "Lokasi",
+    "jumlah_formasi": "Formasi",
+    "jumlah_ms": "Pendaftar"
+})
+
+st.dataframe(insight_df, width="stretch")
+
+# =========================
+# 🏆 TOP 3 EASIEST
+# =========================
+st.subheader("🏆 Peluang Terbaik (Saingan Rendah)")
+
+easiest = filtered.sort_values("rasio_persaingan").head(3)
+easiest["Gaji"] = easiest.apply(format_gaji, axis=1)
+
+st.dataframe(easiest[[
+    "ins_nm", "jabatan_nm", "provinsi", "Gaji", "jumlah_formasi", "jumlah_ms", "rasio_persaingan"
+]].rename(columns={
+    "ins_nm": "Instansi",
+    "jabatan_nm": "Jabatan",
+    "provinsi": "Lokasi",
+    "jumlah_formasi": "Formasi",
+    "jumlah_ms": "Pendaftar",
+    "rasio_persaingan": "Rasio"
+}), width="stretch")
+
+# =========================
+# 💎 HIDDEN GEM
+# =========================
+st.subheader("💎 Hidden Gem (Gaji Lumayan + Sepi)")
+
+hidden = filtered[
+    (filtered["avg_gaji"] > filtered["avg_gaji"].median()) &
+    (filtered["rasio_persaingan"] < filtered["rasio_persaingan"].median())
+].head(5)
+
+hidden["Gaji"] = hidden.apply(format_gaji, axis=1)
+
+st.dataframe(hidden[[
+    "ins_nm", "jabatan_nm", "provinsi", "Gaji", "jumlah_formasi", "jumlah_ms"
+]].rename(columns={
+    "ins_nm": "Instansi",
+    "jabatan_nm": "Jabatan",
+    "provinsi": "Lokasi",
+    "jumlah_formasi": "Formasi",
+    "jumlah_ms": "Pendaftar"
+}), width="stretch")
+
+# =========================
+# 🏆 REKOMENDASI
+# =========================
+st.subheader("🏆 Rekomendasi Terbaik")
+
+display_df = result.copy()
 display_df["Gaji"] = display_df.apply(format_gaji, axis=1)
 display_df["Persaingan"] = display_df["rasio_persaingan"].apply(label_persaingan)
 display_df["Skor (%)"] = display_df["score_pct"].apply(lambda x: f"{x:.1f}%")
 
-display_df["Formasi"] = display_df["jumlah_formasi"]
-display_df["Pendaftar"] = display_df["jumlah_ms"]
-
 display_df = display_df[[
-    "ins_nm",
-    "jabatan_nm",
-    "provinsi",
-    "Gaji",
-    "Formasi",
-    "Pendaftar",
-    "Persaingan",
-    "Skor (%)"
+    "ins_nm", "jabatan_nm", "provinsi", "Gaji",
+    "jumlah_formasi", "jumlah_ms", "Persaingan", "Skor (%)"
 ]].rename(columns={
     "ins_nm": "Instansi",
     "jabatan_nm": "Jabatan",
-    "provinsi": "Lokasi"
+    "provinsi": "Lokasi",
+    "jumlah_formasi": "Formasi",
+    "jumlah_ms": "Pendaftar"
 })
 
-# =========================
-# OUTPUT
-# =========================
-st.subheader("🏆 Rekomendasi Terbaik")
-
 top_n = st.slider("Jumlah hasil", 5, 50, 20)
-
 st.dataframe(display_df.head(top_n), width="stretch")
 
 # =========================
@@ -226,17 +277,15 @@ col3.metric("Rata-rata Persaingan", round(filtered["rasio_persaingan"].mean(), 2
 # CHART
 # =========================
 st.subheader("📈 Gaji vs Persaingan")
-
 st.scatter_chart(filtered[["avg_gaji", "rasio_persaingan"]])
 
 # =========================
 # DOWNLOAD
 # =========================
 csv = result.to_csv(index=False).encode("utf-8")
-
 st.download_button("📥 Download Hasil", csv, "cpns_recommendation.csv", "text/csv")
 
 # =========================
 # FOOTER
 # =========================
-st.caption("Built with ❤️ using SSCASN 2024 data by Zekri hehehe")
+st.caption("Built with ❤️ using SSCASN 2024 data by Zekri 🚀")
