@@ -122,9 +122,9 @@ weight_rasio = 1 - weight_gaji
 # =========================
 filtered = df.copy()
 
-if mode == "Aman (Jabar/Banten)":
+if mode == "Aman (Jabar/Banten/Jakarta)":
     filtered = filtered[
-        (filtered["provinsi"].isin(["Jawa Barat", "Banten"])) &
+        (filtered["provinsi"].isin(["Jawa Barat", "Banten", "Jakarta"])) &
         (filtered["avg_gaji"].between(6000000, 8000000)) &
         (filtered["rasio_persaingan"] < 30)
     ]
