@@ -239,4 +239,4 @@ st.download_button("📥 Download Hasil", csv, "cpns_recommendation.csv", "text/
 # =========================
 # FOOTER
 # =========================
-st.caption("Built with ❤️ using SSCASN 2024 data 🚀")
+st.caption("Built with ❤️ using SSCASN 2024 data by Zekri hehehe")
