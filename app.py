@@ -356,7 +356,7 @@ insight_df = insight_df[[
     "jumlah_ms": "Pendaftar"
 })
 
-st.dataframe(display_df.head(top_n), use_container_width=True)
+st.dataframe(insight_df, use_container_width=True)
 
 # =========================
 # REKOMENDASI
@@ -383,7 +383,7 @@ display_df = display_df[[
 })
 
 top_n = st.slider("Jumlah hasil", 5, 50, 20)
-st.dataframe(display_df.head(top_n), width="stretch")
+st.dataframe(display_df.head(top_n), use_container_width=True)
 
 # =========================
 # METRICS
