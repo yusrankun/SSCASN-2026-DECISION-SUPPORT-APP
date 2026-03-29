@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import os
 
+is_mobile = st.query_params.get("mobile", "0") == "1"
+
 st.set_page_config(
     page_title="CPNS Recommender",
     layout="wide",
@@ -273,6 +275,8 @@ def soft_color(value):
 
 st.markdown("### 🏆 Best Pick Saat Ini")
 
+grid_style = "1fr" if is_mobile else "repeat(3, 1fr)"
+
 st.markdown(f"""
 <div style="
     background: linear-gradient(145deg, #0f172a, #111827);
@@ -282,7 +286,7 @@ st.markdown(f"""
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
 ">
 
-<div style="display:grid; grid-template-columns: 1fr; gap:20px;">
+<div style="display:grid; grid-template-columns: {grid_style}; gap:20px;">
 
 <div>
 <p style="color:#9ca3af; font-size:13px;">Instansi</p>
