@@ -166,41 +166,44 @@ filtered["score_pct"] = filtered["final_score"] * 100
 result = filtered.sort_values("final_score", ascending=False)
 
 # =========================
-# 🏆 BEST PICK (CLEAN UI)
+# 🏆 BEST PICK 
 # =========================
 top1 = result.iloc[0]
+
+def soft_color(value):
+    if value > 70:
+        return "#22c55e"   # soft green
+    elif value > 50:
+        return "#eab308"   # soft yellow
+    else:
+        return "#ef4444"   # soft red
 
 st.markdown("### 🏆 Best Pick Saat Ini")
 
 st.markdown(f"""
 <div style="
-    background-color:#0f172a;
+    background: linear-gradient(145deg, #0f172a, #111827);
     padding:24px;
-    border-radius:12px;
+    border-radius:14px;
     border:1px solid #1f2937;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
 ">
 
 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;">
 
 <div>
 <p style="color:#9ca3af; font-size:13px;">Instansi</p>
-<p style="font-size:18px; font-weight:500;">
-{top1['ins_nm']}
-</p>
+<p style="font-size:17px;">{top1['ins_nm']}</p>
 </div>
 
 <div>
 <p style="color:#9ca3af; font-size:13px;">Jabatan</p>
-<p style="font-size:18px; font-weight:500;">
-{top1['jabatan_nm']}
-</p>
+<p style="font-size:17px;">{top1['jabatan_nm']}</p>
 </div>
 
 <div>
 <p style="color:#9ca3af; font-size:13px;">Lokasi</p>
-<p style="font-size:18px; font-weight:500;">
-{top1['provinsi']}
-</p>
+<p style="font-size:17px;">{top1['provinsi']}</p>
 </div>
 
 <div>
@@ -219,7 +222,7 @@ Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt
 
 <div>
 <p style="color:#9ca3af; font-size:13px;">Estimasi</p>
-<p style="font-size:17px;">
+<p style="font-size:17px; font-weight:600; color:{soft_color(top1['chance_pct'])};">
 {top1['chance_pct']:.2f}%
 </p>
 </div>
@@ -229,7 +232,7 @@ Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt
 <hr style="margin:18px 0; border-color:#1f2937;">
 
 <p style="color:#9ca3af; font-size:13px;">Skor Rekomendasi</p>
-<p style="font-size:22px; font-weight:600;">
+<p style="font-size:17px; font-weight:600; color:{soft_color(top1['score_pct'])};">
 {top1['score_pct']:.1f}%
 </p>
 
