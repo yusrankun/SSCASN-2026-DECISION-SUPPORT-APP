@@ -198,7 +198,7 @@ st.markdown(f"""
 
 <div>
 <p style="color:#9ca3af; font-size:13px;">Jabatan</p>
-<p style="font-size:17px;">{top1['jabatan_nm']}</p>
+<p style="font-size:17px;">{to_title_case(top1['jabatan_nm'])}</p>
 </div>
 
 <div>
@@ -269,6 +269,9 @@ def label_chance(x):
     else:
         return f"{x:.2f}% 🔴"
 
+def to_title_case(text):
+    return str(text).title()
+
 # =========================
 # INSIGHT TABLE
 # =========================
@@ -301,6 +304,7 @@ st.dataframe(insight_df, width="stretch")
 st.subheader("🏆 Rekomendasi Terbaik")
 
 display_df = result.copy()
+display_df["jabatan_nm"] = display_df["jabatan_nm"].apply(lambda x: str(x).title())
 display_df["Gaji"] = display_df.apply(format_gaji, axis=1)
 display_df["Persaingan"] = display_df["rasio_persaingan"].apply(label_persaingan)
 display_df["Estimasi (%)"] = display_df["chance_pct"].apply(label_chance)
