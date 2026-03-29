@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
 
 st.set_page_config(page_title="CPNS Recommender", layout="wide")
 
@@ -9,17 +10,24 @@ st.set_page_config(page_title="CPNS Recommender", layout="wide")
 # =========================
 @st.cache_data
 def load_data(file_path):
+    if not os.path.exists(file_path):
+        st.error(f"File tidak ditemukan: {file_path}")
+        st.stop()
+
     df = pd.read_csv(file_path)
 
+    # numeric conversion
     df["gaji_min"] = pd.to_numeric(df.get("gaji_min"), errors="coerce")
     df["gaji_max"] = pd.to_numeric(df.get("gaji_max"), errors="coerce")
     df["jumlah_formasi"] = pd.to_numeric(df.get("jumlah_formasi"), errors="coerce")
     df["jumlah_ms"] = pd.to_numeric(df.get("jumlah_ms"), errors="coerce")
 
+    # feature engineering
     df["avg_gaji"] = (df["gaji_min"] + df["gaji_max"]) / 2
     df["rasio_persaingan"] = df["jumlah_ms"] / df["jumlah_formasi"]
     df["rasio_persaingan"] = df["rasio_persaingan"].replace([np.inf, -np.inf], np.nan)
 
+    # extract provinsi
     def extract_provinsi(x):
         x = str(x).upper()
         if "JAWA BARAT" in x:
@@ -144,6 +152,13 @@ if instansi:
     ]
 
 # =========================
+# HANDLE EMPTY DATA
+# =========================
+if filtered.empty:
+    st.warning("⚠️ Tidak ada data yang sesuai dengan filter. Coba ubah filter.")
+    st.stop()
+
+# =========================
 # SCORING
 # =========================
 filtered["score"] = (
@@ -196,15 +211,23 @@ top_n = st.slider("Jumlah hasil", 5, 50, 20)
 st.dataframe(display_df.head(top_n), use_container_width=True)
 
 # =========================
-# METRICS
+# METRICS (SAFE)
 # =========================
 st.subheader("📊 Insight")
 
 col1, col2, col3 = st.columns(3)
 
+avg_gaji = filtered["avg_gaji"].mean()
+if pd.isna(avg_gaji):
+    avg_gaji = 0
+
+avg_rasio = filtered["rasio_persaingan"].mean()
+if pd.isna(avg_rasio):
+    avg_rasio = 0
+
 col1.metric("Jumlah Kandidat", len(filtered))
-col2.metric("Rata-rata Gaji", f"Rp {int(filtered['avg_gaji'].mean() or 0):,}")
-col3.metric("Rata-rata Persaingan", round(filtered["rasio_persaingan"].mean() or 0, 2))
+col2.metric("Rata-rata Gaji", f"Rp {int(avg_gaji):,}")
+col3.metric("Rata-rata Persaingan", round(avg_rasio, 2))
 
 # =========================
 # CHART
@@ -228,4 +251,4 @@ st.download_button(
 # =========================
 # FOOTER
 # =========================
-st.caption("Built with ❤️ using SSCASN 2024 data")
+st.caption("Built with ❤️ using SSCASN 2024 data by Zekri hehehe")
