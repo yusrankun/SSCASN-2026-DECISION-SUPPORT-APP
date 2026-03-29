@@ -3,7 +3,21 @@ import pandas as pd
 import numpy as np
 import os
 
-st.set_page_config(page_title="CPNS Recommender", layout="wide")
+st.set_page_config(
+    page_title="CPNS Recommender",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+st.markdown("""
+<style>
+@media (max-width: 768px) {
+    .block-container {
+        padding: 1rem;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
 
 # =========================
 # LOAD DATA
@@ -116,11 +130,6 @@ instansi = st.sidebar.text_input("Filter Instansi (opsional)")
 st.sidebar.subheader("⚖️ Preferensi")
 weight_gaji = st.sidebar.slider("Prioritas Gaji", 0.0, 1.0, 0.5)
 weight_rasio = 1 - weight_gaji
-
-# =========================
-# FILTER
-# =========================
-filtered = df.copy()
 
 # =========================
 # FILTER
@@ -273,7 +282,7 @@ st.markdown(f"""
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
 ">
 
-<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;">
+<div style="display:grid; grid-template-columns: 1fr; gap:20px;">
 
 <div>
 <p style="color:#9ca3af; font-size:13px;">Instansi</p>
@@ -347,7 +356,7 @@ insight_df = insight_df[[
     "jumlah_ms": "Pendaftar"
 })
 
-st.dataframe(insight_df, width="stretch")
+st.dataframe(display_df.head(top_n), use_container_width=True)
 
 # =========================
 # REKOMENDASI
