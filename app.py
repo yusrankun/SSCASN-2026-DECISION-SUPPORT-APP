@@ -16,18 +16,15 @@ def load_data(file_path):
 
     df = pd.read_csv(file_path)
 
-    # numeric conversion
     df["gaji_min"] = pd.to_numeric(df.get("gaji_min"), errors="coerce")
     df["gaji_max"] = pd.to_numeric(df.get("gaji_max"), errors="coerce")
     df["jumlah_formasi"] = pd.to_numeric(df.get("jumlah_formasi"), errors="coerce")
     df["jumlah_ms"] = pd.to_numeric(df.get("jumlah_ms"), errors="coerce")
 
-    # feature engineering
     df["avg_gaji"] = (df["gaji_min"] + df["gaji_max"]) / 2
     df["rasio_persaingan"] = df["jumlah_ms"] / df["jumlah_formasi"]
     df["rasio_persaingan"] = df["rasio_persaingan"].replace([np.inf, -np.inf], np.nan)
 
-    # extract provinsi
     def extract_provinsi(x):
         x = str(x).upper()
         if "JAWA BARAT" in x:
@@ -152,11 +149,15 @@ if instansi:
     ]
 
 # =========================
-# HANDLE EMPTY DATA
+# HANDLE EMPTY (SMART)
 # =========================
 if filtered.empty:
-    st.warning("⚠️ Tidak ada data yang sesuai dengan filter. Coba ubah filter.")
-    st.stop()
+    st.warning("⚠️ Tidak ada data yang sesuai filter. Menampilkan rekomendasi umum.")
+
+    filtered = df.copy()
+    filtered = filtered[filtered["rasio_persaingan"] < 100]
+
+    st.info("💡 Tips: Kurangi filter atau turunkan minimum gaji untuk hasil lebih banyak.")
 
 # =========================
 # SCORING
@@ -208,7 +209,7 @@ st.subheader("🏆 Rekomendasi Terbaik")
 
 top_n = st.slider("Jumlah hasil", 5, 50, 20)
 
-st.dataframe(display_df.head(top_n), use_container_width=True)
+st.dataframe(display_df.head(top_n), width="stretch")
 
 # =========================
 # METRICS (SAFE)
@@ -251,4 +252,4 @@ st.download_button(
 # =========================
 # FOOTER
 # =========================
-st.caption("Built with ❤️ using SSCASN 2024 data by Zekri hehehe")
+st.caption("Built with ❤️ using SSCASN 2024 data by Zekri 🚀")
