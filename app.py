@@ -89,7 +89,7 @@ st.sidebar.header("⚙️ Filter & Strategi")
 
 mode = st.sidebar.selectbox(
     "Mode Strategi",
-    ["Aman (Jabar/Banten)", "High Salary (>9jt)", "Custom"]
+    ["Aman (Jabar/Banten/Jakarta)", "High Salary (>9jt)", "Custom"]
 )
 
 options_prov = sorted(df["provinsi"].dropna().unique())
