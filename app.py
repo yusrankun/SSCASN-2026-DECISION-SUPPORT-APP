@@ -163,8 +163,10 @@ else:
     ]
 
 if instansi:
-    filtered = filtered[
-        filtered["ins_nm"].str.contains(instansi, case=False, na=False)
+    st.info(f"🔍 Menampilkan semua data untuk instansi: {instansi}")
+
+    filtered = df[
+        df["ins_nm"].str.contains(instansi, case=False, na=False)
     ]
 
 if filtered.empty:
