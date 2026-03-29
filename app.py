@@ -92,10 +92,14 @@ mode = st.sidebar.selectbox(
     ["Aman (Jabar/Banten)", "High Salary (>9jt)", "Custom"]
 )
 
+options_prov = sorted(df["provinsi"].dropna().unique())
+
+default_prov = ["Jawa Barat"] if "Jawa Barat" in options_prov else options_prov[:1]
+
 provinsi = st.sidebar.multiselect(
     "Lokasi",
-    options=sorted(df["provinsi"].unique()),
-    default=["Jawa Barat"]
+    options=options_prov,
+    default=default_prov
 )
 
 min_gaji = st.sidebar.slider(
