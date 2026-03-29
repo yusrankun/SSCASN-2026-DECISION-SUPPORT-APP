@@ -155,29 +155,56 @@ if filtered.empty:
 # =========================
 # SCORING + CHANCE
 # =========================
+
+# Base score (gaji + persaingan)
 filtered["score"] = (
     (filtered["avg_gaji"] / filtered["avg_gaji"].max()) * weight_gaji +
     ((1 / (filtered["rasio_persaingan"] + 1)) * weight_rasio)
 )
 
-# ✅ FIX CHANCE
+# =========================
+# CHANCE (FIXED)
+# =========================
 filtered["chance"] = np.where(
     filtered["jumlah_ms"] == 0,
-    1,
+    1,  # auto lolos kalau belum ada pelamar
     filtered["jumlah_formasi"] / (filtered["jumlah_ms"] + 1)
 )
 
-# ✅ BATASIN MAX 100%
+# Batasi max 100%
 filtered["chance"] = filtered["chance"].clip(0, 1)
 
 filtered["chance_pct"] = filtered["chance"] * 100
 
-filtered["final_score"] = (
-    filtered["score"] * 0.6 +
-    filtered["chance"] * 0.4
+# =========================
+# TAMBAHAN FACTOR
+# =========================
+
+# Semakin banyak formasi, semakin bagus
+filtered["formasi_score"] = (
+    filtered["jumlah_formasi"] / filtered["jumlah_formasi"].max()
 )
 
+# Penalti kalau pelamar terlalu banyak
+filtered["penalty"] = np.log1p(filtered["jumlah_ms"])
+
+# =========================
+# FINAL SCORE
+# =========================
+filtered["final_score"] = (
+    filtered["score"] * 0.5 +
+    filtered["chance"] * 0.3 +
+    filtered["formasi_score"] * 0.2
+)
+
+# Apply penalty
+filtered["final_score"] = filtered["final_score"] / (1 + 0.1 * filtered["penalty"])
+
+# =========================
+# FINAL OUTPUT
+# =========================
 filtered["score_pct"] = filtered["final_score"] * 100
+
 result = filtered.sort_values("final_score", ascending=False)
 
 # =========================
