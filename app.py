@@ -160,8 +160,11 @@ filtered["score"] = (
     ((1 / (filtered["rasio_persaingan"] + 1)) * weight_rasio)
 )
 
-filtered["chance"] = filtered["jumlah_formasi"] / filtered["jumlah_ms"]
-filtered["chance"] = filtered["chance"].replace([np.inf, -np.inf], np.nan).fillna(0)
+filtered["chance"] = np.where(
+    filtered["jumlah_ms"] == 0,
+    1,
+    filtered["jumlah_formasi"] / (filtered["jumlah_ms"] + 1)
+)
 
 filtered["chance_pct"] = filtered["chance"] * 100
 
