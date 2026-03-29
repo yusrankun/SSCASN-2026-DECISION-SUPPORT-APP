@@ -124,7 +124,7 @@ filtered = df.copy()
 
 if mode == "Aman (Jabar/Banten/Jakarta)":
     filtered = filtered[
-        (filtered["provinsi"].isin(["Jawa Barat", "Banten", "Jakarta"])) &
+        (filtered["provinsi"].isin(["Jawa Barat", "Banten", "DKI Jakarta"])) &
         (filtered["avg_gaji"].between(6000000, 8000000)) &
         (filtered["rasio_persaingan"] < 30)
     ]
