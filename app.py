@@ -25,7 +25,7 @@ def load_data(file_path):
     # feature engineering
     df["avg_gaji"] = (df["gaji_min"] + df["gaji_max"]) / 2
 
-    # 🔥 FILTER OUTLIER GAJI (REALISTIC)
+    # filter outlier gaji
     df = df[df["avg_gaji"] <= 20000000]
 
     df["rasio_persaingan"] = df["jumlah_ms"] / df["jumlah_formasi"]
@@ -67,22 +67,16 @@ jurusan = st.sidebar.selectbox(
 
 if jurusan == "SLTA/SMA":
     df = load_data("data/slta.csv")
-
 elif jurusan == "Sistem Informasi":
     df = load_data("data/sistem_informasi.csv")
-
 elif jurusan == "Teknik Informatika":
     df = load_data("data/teknik_informatika.csv")
-
 elif jurusan == "Teknik Elektro":
     df = load_data("data/teknik_elektro.csv")
-
 elif jurusan == "Ilmu Komunikasi":
     df = load_data("data/ilmu_komunikasi.csv")
-
 else:
     df = load_data("data/akuntansi.csv")
-
 
 # =========================
 # HEADER
@@ -91,7 +85,7 @@ st.title("🎯 Rekomendasi Formasi CPNS")
 st.caption(f"Jurusan: {jurusan} | Optimasi peluang lolos + gaji")
 
 # =========================
-# SIDEBAR FILTER
+# SIDEBAR
 # =========================
 st.sidebar.header("⚙️ Filter & Strategi")
 
@@ -113,14 +107,11 @@ min_gaji = st.sidebar.slider(
     int(df["avg_gaji"].median())
 )
 
-max_rasio = st.sidebar.slider(
-    "Maks Persaingan",
-    1, 200, 30
-)
+max_rasio = st.sidebar.slider("Maks Persaingan", 1, 200, 30)
 
 instansi = st.sidebar.text_input("Filter Instansi (opsional)")
 
-# 🎯 Preferensi
+# preferensi
 st.sidebar.subheader("⚖️ Preferensi")
 weight_gaji = st.sidebar.slider("Prioritas Gaji", 0.0, 1.0, 0.5)
 weight_rasio = 1 - weight_gaji
@@ -155,16 +146,11 @@ if instansi:
         filtered["ins_nm"].str.contains(instansi, case=False, na=False)
     ]
 
-# =========================
-# HANDLE EMPTY
-# =========================
+# fallback kalau kosong
 if filtered.empty:
     st.warning("⚠️ Tidak ada data sesuai filter. Menampilkan rekomendasi umum.")
-
     filtered = df.copy()
     filtered = filtered[filtered["rasio_persaingan"] < 100]
-
-    st.info("💡 Tips: Kurangi filter atau turunkan minimum gaji.")
 
 # =========================
 # SCORING
@@ -179,14 +165,10 @@ filtered["score_pct"] = filtered["score"] * 100
 result = filtered.sort_values("score", ascending=False)
 
 # =========================
-# DISPLAY (RANGE GAJI)
+# DISPLAY
 # =========================
 def format_gaji(row):
-    return f"Rp {row['gaji_min']/1e6:.1f}–{row['gaji_max']/1e6:.1f} jt (avg {row['avg_gaji']/1e6:.1f})"
-
-display_df = result.copy()
-
-display_df["Gaji"] = display_df.apply(format_gaji, axis=1)
+    return f"Rp {row['gaji_min']/1e6:.1f}–{row['gaji_max']/1e6:.1f} jt"
 
 def label_persaingan(x):
     if x < 10:
@@ -196,19 +178,24 @@ def label_persaingan(x):
     else:
         return "Ketat 🔴"
 
-display_df["Tingkat Persaingan"] = display_df["rasio_persaingan"].apply(label_persaingan)
+display_df = result.copy()
 
-display_df["Skor Rekomendasi (%)"] = display_df["score_pct"].apply(
-    lambda x: f"{x:.1f}%"
-)
+display_df["Gaji"] = display_df.apply(format_gaji, axis=1)
+display_df["Persaingan"] = display_df["rasio_persaingan"].apply(label_persaingan)
+display_df["Skor (%)"] = display_df["score_pct"].apply(lambda x: f"{x:.1f}%")
+
+display_df["Formasi"] = display_df["jumlah_formasi"]
+display_df["Pendaftar"] = display_df["jumlah_ms"]
 
 display_df = display_df[[
     "ins_nm",
     "jabatan_nm",
     "provinsi",
     "Gaji",
-    "Tingkat Persaingan",
-    "Skor Rekomendasi (%)"
+    "Formasi",
+    "Pendaftar",
+    "Persaingan",
+    "Skor (%)"
 ]].rename(columns={
     "ins_nm": "Instansi",
     "jabatan_nm": "Jabatan",
@@ -231,17 +218,9 @@ st.subheader("📊 Insight")
 
 col1, col2, col3 = st.columns(3)
 
-avg_gaji = filtered["avg_gaji"].mean()
-if pd.isna(avg_gaji):
-    avg_gaji = 0
-
-avg_rasio = filtered["rasio_persaingan"].mean()
-if pd.isna(avg_rasio):
-    avg_rasio = 0
-
 col1.metric("Jumlah Kandidat", len(filtered))
-col2.metric("Rata-rata Gaji", f"Rp {int(avg_gaji):,}")
-col3.metric("Rata-rata Persaingan", round(avg_rasio, 2))
+col2.metric("Rata-rata Gaji", f"Rp {int(filtered['avg_gaji'].mean()):,}")
+col3.metric("Rata-rata Persaingan", round(filtered["rasio_persaingan"].mean(), 2))
 
 # =========================
 # CHART
@@ -255,14 +234,9 @@ st.scatter_chart(filtered[["avg_gaji", "rasio_persaingan"]])
 # =========================
 csv = result.to_csv(index=False).encode("utf-8")
 
-st.download_button(
-    "📥 Download Hasil",
-    csv,
-    "cpns_recommendation.csv",
-    "text/csv"
-)
+st.download_button("📥 Download Hasil", csv, "cpns_recommendation.csv", "text/csv")
 
 # =========================
 # FOOTER
 # =========================
-st.caption("Built with ❤️ using SSCASN 2024 data by Zekri 🚀")
+st.caption("Built with ❤️ using SSCASN 2024 data 🚀")
