@@ -1,30 +1,19 @@
-# 🎯 CPNS Recommendation System (Multi-Major)
+# 🎯 CPNS Recommendation System (Multi-Major, Jabodetabek-Oriented)
 
-A **Streamlit-based decision support system** to help users find the most suitable CPNS (Indonesian civil servant) job positions based on:
+A **Streamlit-based decision support system** designed to help users find the most suitable CPNS (Indonesian civil servant) job positions across Indonesia.
 
-* 💰 Salary
-* 📍 Location
-* 🏢 Institution
-* ⚔️ Competition level
-
-This system supports multiple education levels and majors:
-
-* SLTA / SMA
-* Information Systems
-* Informatics Engineering
-* Electrical Engineering
-* Communication Studies
+This system leverages real SSCASN data and is **optimized for users in Jabodetabek (Jakarta, Bogor, Depok, Tangerang, Bekasi)** while still supporting nationwide exploration.
 
 ---
 
 ## 🚀 Features
 
-* 🔎 Filter by location (province)
+* 📍 Location-based filtering (Jabodetabek & nationwide)
 * 💰 Minimum salary filtering
 * 🏢 Institution search
 * ⚖️ Adjustable preference (salary vs competition)
 * 🧠 Smart recommendation scoring system
-* 📊 Interactive data visualization
+* 📊 Interactive dashboard
 * 📥 Export results to CSV
 
 ---
@@ -40,11 +29,11 @@ Where:
 * normalized_salary = avg_salary / max(avg_salary)
 * inverse_competition = 1 / (competition_ratio + 1)
 
-This ensures:
+This approach ensures:
 
-* Balanced evaluation
-* No division errors
-* User-controlled preferences
+* Balanced decision-making
+* No division-by-zero errors
+* Flexible user preferences
 
 ---
 
@@ -58,7 +47,8 @@ project/
 │   ├── sistem_informasi.csv
 │   ├── teknik_informatika.csv
 │   ├── teknik_elektro.csv
-│   └── ilmu_komunikasi.csv
+│   ├── ilmu_komunikasi.csv
+│   └── akuntansi.csv
 ├── requirements.txt
 └── README.md
 
@@ -84,13 +74,16 @@ streamlit run app.py
 ## 📊 Dataset
 
 * Source: SSCASN (BKN) API
-* Covers multiple majors and education levels
-* Total records: 20,000+ CPNS job openings
+* Coverage:
 
-### Data includes:
+  * High school (SLTA)
+  * Multiple university majors
+* Total records: **30,000+ CPNS job positions**
+
+### Includes:
 
 * Institution
-* Job position
+* Job title
 * Location
 * Salary (min & max)
 * Number of positions
@@ -98,12 +91,21 @@ streamlit run app.py
 
 ---
 
+## 🎯 Design Perspective
+
+This system is built as a **decision support tool**:
+
+* Works **nationwide**
+* Includes built-in filtering strategies optimized for **Jabodetabek users**
+* Helps users balance **salary vs acceptance probability**
+
+---
+
 ## 🏆 Use Cases
 
-* Data Science portfolio
-* Decision Support System (DSS)
-* Public sector analytics
-* Real-world recommendation system
+* CPNS applicants seeking data-driven decisions
+* Fresh graduates targeting Jabodetabek or nearby regions
+* Portfolio project for data science & decision systems
 
 ---
 
@@ -111,9 +113,9 @@ streamlit run app.py
 
 * 📊 Advanced EDA dashboard
 * 🌍 Map-based visualization
-* 🤖 Machine learning ranking model
-* 📈 Trend analysis per institution
-* 🔍 Cross-major comparison
+* 🤖 Machine learning recommendation model
+* 📈 Cross-major comparison
+* 🎯 Jabodetabek-only mode
 
 ---
 
@@ -125,4 +127,4 @@ Created by: **Zekri Fitra Ramadhan**
 
 ## ⭐ Notes
 
-This project uses publicly available SSCASN data for educational and analytical purposes.
+This project uses publicly available SSCASN data for educational purposes and is not affiliated with the Indonesian government.
