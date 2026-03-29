@@ -25,7 +25,7 @@ def load_data(file_path):
     # feature engineering
     df["avg_gaji"] = (df["gaji_min"] + df["gaji_max"]) / 2
 
-    # 🔥 CLEAN OUTLIER GAJI
+    # 🔥 FILTER OUTLIER GAJI (REALISTIC)
     df = df[df["avg_gaji"] <= 20000000]
 
     df["rasio_persaingan"] = df["jumlah_ms"] / df["jumlah_formasi"]
@@ -156,15 +156,15 @@ if instansi:
     ]
 
 # =========================
-# HANDLE EMPTY (SMART)
+# HANDLE EMPTY
 # =========================
 if filtered.empty:
-    st.warning("⚠️ Tidak ada data yang sesuai filter. Menampilkan rekomendasi umum.")
+    st.warning("⚠️ Tidak ada data sesuai filter. Menampilkan rekomendasi umum.")
 
     filtered = df.copy()
     filtered = filtered[filtered["rasio_persaingan"] < 100]
 
-    st.info("💡 Tips: Kurangi filter atau turunkan minimum gaji untuk hasil lebih banyak.")
+    st.info("💡 Tips: Kurangi filter atau turunkan minimum gaji.")
 
 # =========================
 # SCORING
@@ -174,36 +174,20 @@ filtered["score"] = (
     ((1 / (filtered["rasio_persaingan"] + 1)) * weight_rasio)
 )
 
-# 🔥 UBAH KE PERSENTASE
 filtered["score_pct"] = filtered["score"] * 100
 
 result = filtered.sort_values("score", ascending=False)
 
 # =========================
-# DISPLAY
+# DISPLAY (RANGE GAJI)
 # =========================
-display_df = result[[
-    "ins_nm",
-    "jabatan_nm",
-    "provinsi",
-    "avg_gaji",
-    "rasio_persaingan",
-    "score_pct"
-]].rename(columns={
-    "ins_nm": "Instansi",
-    "jabatan_nm": "Jabatan",
-    "provinsi": "Lokasi",
-    "avg_gaji": "Rata-rata Gaji",
-    "rasio_persaingan": "Tingkat Persaingan",
-    "score_pct": "Skor Rekomendasi (%)"
-})
+def format_gaji(row):
+    return f"Rp {row['gaji_min']/1e6:.1f}–{row['gaji_max']/1e6:.1f} jt (avg {row['avg_gaji']/1e6:.1f})"
 
-# format gaji
-display_df["Rata-rata Gaji"] = display_df["Rata-rata Gaji"].apply(
-    lambda x: f"Rp {x:,.0f}"
-)
+display_df = result.copy()
 
-# label persaingan
+display_df["Gaji"] = display_df.apply(format_gaji, axis=1)
+
 def label_persaingan(x):
     if x < 10:
         return "Sepi 🟢"
@@ -212,12 +196,24 @@ def label_persaingan(x):
     else:
         return "Ketat 🔴"
 
-display_df["Tingkat Persaingan"] = display_df["Tingkat Persaingan"].apply(label_persaingan)
+display_df["Tingkat Persaingan"] = display_df["rasio_persaingan"].apply(label_persaingan)
 
-# format persen
-display_df["Skor Rekomendasi (%)"] = display_df["Skor Rekomendasi (%)"].apply(
+display_df["Skor Rekomendasi (%)"] = display_df["score_pct"].apply(
     lambda x: f"{x:.1f}%"
 )
+
+display_df = display_df[[
+    "ins_nm",
+    "jabatan_nm",
+    "provinsi",
+    "Gaji",
+    "Tingkat Persaingan",
+    "Skor Rekomendasi (%)"
+]].rename(columns={
+    "ins_nm": "Instansi",
+    "jabatan_nm": "Jabatan",
+    "provinsi": "Lokasi"
+})
 
 # =========================
 # OUTPUT
@@ -229,7 +225,7 @@ top_n = st.slider("Jumlah hasil", 5, 50, 20)
 st.dataframe(display_df.head(top_n), width="stretch")
 
 # =========================
-# METRICS (SAFE)
+# METRICS
 # =========================
 st.subheader("📊 Insight")
 
