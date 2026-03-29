@@ -57,7 +57,9 @@ jurusan = st.sidebar.selectbox(
         "Teknik Informatika",
         "Teknik Elektro",
         "Ilmu Komunikasi",
-        "Akuntansi"
+        "Akuntansi",
+        "Teknologi Laboratorium Medis",
+        "Administrasi Kesehatan"
     ]
 )
 
@@ -67,7 +69,9 @@ file_map = {
     "Teknik Informatika": "data/teknik_informatika.csv",
     "Teknik Elektro": "data/teknik_elektro.csv",
     "Ilmu Komunikasi": "data/ilmu_komunikasi.csv",
-    "Akuntansi": "data/akuntansi.csv"
+    "Akuntansi": "data/akuntansi.csv",
+    "Teknologi Laboratorium Medis": "data/teknologi_laboratorium_medis.csv",
+    "Administrasi Kesehatan": "data/administrasi_kesehatan.csv"
 }
 
 df = load_data(file_map[jurusan])
