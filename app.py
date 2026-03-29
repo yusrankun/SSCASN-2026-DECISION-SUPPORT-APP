@@ -168,8 +168,50 @@ if instansi:
     ]
 
 if filtered.empty:
-    st.warning("⚠️ Tidak ada data sesuai filter. Coba ubah filter.")
-    st.stop()
+    st.warning("⚠️ Tidak ada data sesuai filter.")
+
+    st.info("🔍 Mencari alternatif terbaik yang paling mendekati preferensi kamu...")
+
+    # =========================
+    # STEP 1: Longgarkan rasio (tetap lokasi)
+    # =========================
+    fallback = df.copy()
+    fallback = fallback[fallback["provinsi"].isin(provinsi)]
+    fallback = fallback[fallback["avg_gaji"] >= min_gaji * 0.8]  # turunin dikit
+    fallback = fallback[fallback["rasio_persaingan"] <= max_rasio * 1.5]
+
+    # =========================
+    # STEP 2: Kalau masih kosong → lepas lokasi
+    # =========================
+    if fallback.empty:
+        st.info("📍 Tidak ditemukan di lokasi ini, menampilkan lokasi terbaik lainnya...")
+
+        fallback = df.copy()
+        fallback = fallback[fallback["avg_gaji"] >= min_gaji * 0.8]
+        fallback = fallback[fallback["rasio_persaingan"] <= max_rasio * 1.5]
+
+    # =========================
+    # STEP 3: Ranking ulang
+    # =========================
+    fallback["score"] = (
+        (fallback["avg_gaji"] / fallback["avg_gaji"].max()) * weight_gaji +
+        ((1 / (fallback["rasio_persaingan"] + 1)) * weight_rasio)
+    )
+
+    fallback["chance"] = np.where(
+        fallback["jumlah_ms"] == 0,
+        1,
+        fallback["jumlah_formasi"] / (fallback["jumlah_ms"] + 1)
+    )
+
+    fallback["chance"] = fallback["chance"].clip(0, 1)
+
+    fallback["final_score"] = (
+        fallback["score"] * 0.6 +
+        fallback["chance"] * 0.4
+    )
+
+    filtered = fallback.sort_values("final_score", ascending=False)
 
 # =========================
 # SCORING + CHANCE
