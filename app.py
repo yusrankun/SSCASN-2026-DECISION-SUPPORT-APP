@@ -166,39 +166,69 @@ filtered["score_pct"] = filtered["final_score"] * 100
 result = filtered.sort_values("final_score", ascending=False)
 
 # =========================
-# 🥇 BEST PICK (CLEAN)
+# 🏆 BEST PICK (CLEAN UI)
 # =========================
 top1 = result.iloc[0]
 
 st.markdown("### 🏆 Best Pick Saat Ini")
 
-col1, col2, col3 = st.columns(3)
+st.markdown(f"""
+<div style="
+    background-color:#111827;
+    padding:20px;
+    border-radius:12px;
+    border:1px solid #1f2937;
+">
 
-col1.metric("Instansi", top1["ins_nm"])
-col2.metric("Jabatan", top1["jabatan_nm"])
-col3.metric("Lokasi", top1["provinsi"])
+<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;">
 
-col4, col5, col6 = st.columns(3)
+<div>
+<p style="color:#9ca3af; font-size:12px;">Instansi</p>
+<p style="font-size:16px;">{top1['ins_nm']}</p>
+</div>
 
-col4.metric(
-    "Gaji",
-    f"Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt"
-)
+<div>
+<p style="color:#9ca3af; font-size:12px;">Jabatan</p>
+<p style="font-size:16px;">{top1['jabatan_nm']}</p>
+</div>
 
-col5.metric(
-    "Formasi vs Pelamar",
-    f"{int(top1['jumlah_formasi'])} / {int(top1['jumlah_ms'])}"
-)
+<div>
+<p style="color:#9ca3af; font-size:12px;">Lokasi</p>
+<p style="font-size:16px;">{top1['provinsi']}</p>
+</div>
 
-col6.metric(
-    "Estimasi",
-    f"{top1['chance_pct']:.2f}%"
-)
+<div>
+<p style="color:#9ca3af; font-size:12px;">Gaji</p>
+<p style="font-size:16px;">
+Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt
+</p>
+</div>
 
-st.metric(
-    "Skor Rekomendasi",
-    f"{top1['score_pct']:.1f}%"
-)
+<div>
+<p style="color:#9ca3af; font-size:12px;">Formasi vs Pelamar</p>
+<p style="font-size:16px;">
+{int(top1['jumlah_formasi'])} / {int(top1['jumlah_ms'])}
+</p>
+</div>
+
+<div>
+<p style="color:#9ca3af; font-size:12px;">Estimasi</p>
+<p style="font-size:16px;">
+{top1['chance_pct']:.2f}%
+</p>
+</div>
+
+</div>
+
+<hr style="margin:16px 0; border-color:#1f2937;">
+
+<p style="color:#9ca3af; font-size:12px;">Skor Rekomendasi</p>
+<p style="font-size:18px; font-weight:bold;">
+{top1['score_pct']:.1f}%
+</p>
+
+</div>
+""", unsafe_allow_html=True)
 
 # =========================
 # HELPER
