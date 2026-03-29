@@ -166,22 +166,39 @@ filtered["score_pct"] = filtered["final_score"] * 100
 result = filtered.sort_values("final_score", ascending=False)
 
 # =========================
-# 🥇 BEST PICK
+# 🥇 BEST PICK (CLEAN)
 # =========================
 top1 = result.iloc[0]
 
-st.success(f"""
-🥇 BEST PICK SAAT INI
+st.markdown("### 🏆 Best Pick Saat Ini")
 
-🏢 {top1['ins_nm']}  
-💼 {top1['jabatan_nm']}  
-📍 {top1['provinsi']}  
-💰 Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt  
-👥 {int(top1['jumlah_ms'])} pelamar | {int(top1['jumlah_formasi'])} formasi  
+col1, col2, col3 = st.columns(3)
 
-🎯 Estimasi: {top1['chance_pct']:.2f}%  
-🔥 Skor: {top1['score_pct']:.1f}%
-""")
+col1.metric("Instansi", top1["ins_nm"])
+col2.metric("Jabatan", top1["jabatan_nm"])
+col3.metric("Lokasi", top1["provinsi"])
+
+col4, col5, col6 = st.columns(3)
+
+col4.metric(
+    "Gaji",
+    f"Rp {top1['gaji_min']/1e6:.1f}–{top1['gaji_max']/1e6:.1f} jt"
+)
+
+col5.metric(
+    "Formasi vs Pelamar",
+    f"{int(top1['jumlah_formasi'])} / {int(top1['jumlah_ms'])}"
+)
+
+col6.metric(
+    "Estimasi",
+    f"{top1['chance_pct']:.2f}%"
+)
+
+st.metric(
+    "Skor Rekomendasi",
+    f"{top1['score_pct']:.1f}%"
+)
 
 # =========================
 # HELPER
