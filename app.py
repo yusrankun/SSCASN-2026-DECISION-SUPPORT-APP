@@ -122,14 +122,24 @@ weight_rasio = 1 - weight_gaji
 # =========================
 filtered = df.copy()
 
-if mode == "Aman (Jabar/Banten/Jakarta)":
+# =========================
+# FILTER
+# =========================
+filtered = df.copy()
+
+# ✅ GLOBAL FILTER (SELALU JALAN)
+filtered = filtered[filtered["provinsi"].isin(provinsi)]
+
+# =========================
+# MODE FILTER
+# =========================
+if "Aman" in mode:
     filtered = filtered[
-        (filtered["provinsi"].isin(["Jawa Barat", "Banten", "DKI Jakarta"])) &
         (filtered["avg_gaji"].between(6000000, 8000000)) &
         (filtered["rasio_persaingan"] < 30)
     ]
 
-elif mode == "High Salary (>9jt)":
+elif "High Salary" in mode:
     filtered = filtered[
         (filtered["avg_gaji"] > 9000000) &
         (filtered["rasio_persaingan"] < 30)
@@ -137,7 +147,6 @@ elif mode == "High Salary (>9jt)":
 
 else:
     filtered = filtered[
-        (filtered["provinsi"].isin(provinsi)) &
         (filtered["avg_gaji"] >= min_gaji) &
         (filtered["rasio_persaingan"] <= max_rasio)
     ]
